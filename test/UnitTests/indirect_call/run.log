@@ -1,0 +1,81 @@
+strongcourage@tsunami:~/giri/test/UnitTests/indirect_call$ make CRITERION="-criterion-loc=loc.txt"
+
+# Ouput nothing ?
+make -s -C ../../../build
+
+# Compile PUT to generate the original bitcode
+clang -g -O0 -c -emit-llvm example.c -o example.bc
+llvm-link example.bc -o example.all.bc
+
+# Instrument basic blocks (-bbnum), instructions (-lsnum) to generate instrumented bitcode and a trace file
+for collecting static statistics
+opt -load ../../../build/Release+Asserts/lib/libdgutility.so \
+		-load ../../../build/Release+Asserts/lib/libgiri.so \
+		-mergereturn -bbnum -lsnum \
+		-trace-giri -trace-file=example.trace \
+		-remove-bbnum -remove-lsnum \
+		-stats -debug example.all.bc -o example.trace.bc
+
+Args: opt -load ../../../build/Release+Asserts/lib/libdgutility.so -load ../../../build/Release+Asserts/lib/libgiri.so -mergereturn -bbnum -lsnum -trace-giri -trace-file=example.trace -remove-bbnum -remove-lsnum -stats -debug example.all.bc -o example.trace.bc 
+
+# Maybe remove -lsnum and -remove-lsnum
+opt -load ../../../build/Release+Asserts/lib/libdgutility.so -load ../../../build/Release+Asserts/lib/libgiri.so -mergereturn -bbnum -trace-giri -trace-file=full.trace -remove-bbnum -stats -debug full.all.bc -o full.trace.bc
+
+Subtarget features: SSELevel 8, 3DNowLevel 0, 64bit 1
+Total Number of Basic Blocks: 7
+Number of monitored program points: 31
+Inside QueryBasicBlockNumbers for module example.all.bc
+Inside QueryLoadStoreNumbers for module example.all.bc
+===-------------------------------------------------------------------------===
+                          ... Statistics Collected ...
+===-------------------------------------------------------------------------===
+
+ 7 giri - Number of basic blocks
+ 2 giri - Number of call instructions processed
+ 8 giri - Number of load instructions processed
+11 giri - Number of store instructions processed
+
+# Produce instrumented executable file 
+llc -asm-verbose=false -O0 example.trace.bc -o example.trace.s
+clang++ -fno-strict-aliasing example.trace.s -o example.trace.exe -L../../../build/Release+Asserts/lib -lrtgiri -lm
+
+# Run it with inputs
+./example.trace.exe 10
+15
+
+# Collect dynamic statistics. Now, donot care about slicing
+opt -load ../../../build/Release+Asserts/lib/libdgutility.so \
+		-load ../../../build/Release+Asserts/lib/libgiri.so \
+		-mergereturn -bbnum -lsnum \
+		-dgiri -trace-file=example.trace -slice-file=example.slice -criterion-loc=loc.txt\
+		-remove-bbnum -remove-lsnum \
+		-stats -debug example.all.bc -o /dev/null
+
+Args: opt -load ../../../build/Release+Asserts/lib/libdgutility.so -load ../../../build/Release+Asserts/lib/libgiri.so -mergereturn -bbnum -lsnum -dgiri -trace-file=example.trace -slice-file=example.slice -criterion-loc=loc.txt -remove-bbnum -remove-lsnum -stats -debug example.all.bc -o /dev/null 
+
+Subtarget features: SSELevel 8, 3DNowLevel 0, 64bit 1
+Total Number of Basic Blocks: 6 ==> Not 7 as above.
+Number of monitored program points: 31
+Inside QueryBasicBlockNumbers for module example.all.bc
+Inside QueryLoadStoreNumbers for module example.all.bc
+traceFunAddrMap.size(): 1
+TraceFile example.trace successfully initialized.
+Start slicing Filename:Loc is defined as example.c:23
+Found instruction matching the LoC:   %1 = load void (i32, i32)** %indirect_call, align 8, !dbg !73
+Found instruction matching the LoC:   %2 = load i32* %x, align 4, !dbg !73
+Found instruction matching the LoC:   %3 = load i32* %y, align 4, !dbg !73
+Found instruction matching the LoC:   call void %1(i32 %2, i32 %3), !dbg !73
+getSourcesForCall failed to find
+===-------------------------------------------------------------------------===
+                          ... Statistics Collected ...
+===-------------------------------------------------------------------------===
+
+0 giri     - Number of Dynamic Loads Lost
+0 giri     - Number of Dynamic Loads Traced
+1 giri     - Number of Dynamic Sources Queried
+1 giri     - Number of Dynamic Values in Slice
+2 giriutil - Number of queried including ignored LLVM insts
+2 giriutil - Number of source information locations found
+
+# Print sequence of executed basic blocks
+strongcourage@tsunami:~/giri/test/UnitTests/indirect_call$ ~/giri/build/Release+Asserts/bin/prtrace example.trace

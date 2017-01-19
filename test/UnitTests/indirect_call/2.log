@@ -1,0 +1,7 @@
+strongcourage@tsunami:~/giri/test/UnitTests/indirect_call$ ~/giri/build/Release+Asserts/bin/prtrace example.trace
+-----------------------------------------------------------------------------
+[BasicBlock]: 3
+[BasicBlock]: 5
+[BasicBlock]: 2
+[BasicBlock]: 6
+-----------------------------------------------------------------------------

@@ -40,56 +40,64 @@ int main(int argc, char ** argv) {
   assert((fd != -1) && "Cannot open file!\n");
 
   // Print a header that reminds the user of what the fields mean.
-  printf("-----------------------------------------------------------------------------\n");
-  printf("%10s:  Record Type: %6s: %15s: %16s: %8s\n",
-         "Index", "ID", "TID", "Address", "Length");
-  printf("-----------------------------------------------------------------------------\n");
+  // printf("-----------------------------------------------------------------------------\n");
+  // printf("%10s:  Record Type: %6s: %15s: %16s: %8s\n",
+  //        "Index", "ID", "TID", "Address", "Length");
+  // printf("-----------------------------------------------------------------------------\n");
 
   // Read in each entry and print it out.
   Entry entry;
   ssize_t readsize;
   unsigned index = 0;
+  printf("-----------------------------------------------------------------------------\n");
   while ((readsize = read(fd, &entry, sizeof(entry))) == sizeof(entry)) {
-    printf("%10u: ", index++);
+    // if (entry.type == RecordType::BBType) {
+    //   printf("BasicBlock %d - ", entry.id);
+    // } else {
+    //   break;
+    // }
+    // printf("%d");
+    // printf("%10u: ", index++);
 
     // Print the entry's type
     switch (entry.type) {
       case RecordType::BBType:
-        printf("BasicBlock  : ");
+        printf("[BasicBlock]: ");
         break;
-      case RecordType::LDType:
-        printf("Load        : ");
-        break;
-      case RecordType::STType:
-        printf("Store       : ");
-        break;
-      case RecordType::PDType:
-        printf("Select      : ");
-        break;
-      case RecordType::CLType:
-        printf("Call        : ");
-        break;
-      case RecordType::RTType:
-        printf("Return      : ");
-        break;
-      case RecordType::ENType:
-        printf("End         : ");
-        break;
+    //   case RecordType::LDType:
+    //     printf("Load        : ");
+    //     break;
+    //   case RecordType::STType:
+    //     printf("Store       : ");
+    //     break;
+    //   case RecordType::PDType:
+    //     printf("Select      : ");
+    //     break;
+    //   case RecordType::CLType:
+    //     printf("Call        : ");
+    //     break;
+    //   case RecordType::RTType:
+    //     printf("Return      : ");
+    //     break;
+    //   case RecordType::ENType:
+    //     printf("End         : ");
+    //     break;
     }
 
     // Print the value associated with the entry.
     if (entry.type == RecordType::BBType)
-      printf("%6u: %8lu: %16lx: %8lu\n",
-             entry.id,
-             entry.tid,
-             entry.address,
-             entry.length);
-    else
-      printf("%6u: %8lu: %16lx: %8lx\n",
-             entry.id,
-             entry.tid,
-             entry.address,
-             entry.length);
+      printf("%u\n", entry.id);
+    //   printf("%6u: %8lu: %16lx: %8lu\n",
+    //          entry.id,
+    //          entry.tid,
+    //          entry.address,
+    //          entry.length);
+    // else
+    //   printf("%6u: %8lu: %16lx: %8lx\n",
+    //          entry.id,
+    //          entry.tid,
+    //          entry.address,
+    //          entry.length);
 
     // Stop printing entries if we've hit the end of the log.
     if (entry.type == RecordType::ENType) {
@@ -97,7 +105,7 @@ int main(int argc, char ** argv) {
       break;
     }
   }
-
+  printf("-----------------------------------------------------------------------------\n");
   if (readsize != 0) {
     fprintf(stderr, "Read of incorrect size\n");
     exit(1);

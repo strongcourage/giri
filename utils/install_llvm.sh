@@ -35,4 +35,4 @@ cd $LLVM_HOME/build
 			 --enable-targets=host-only \
 			 --enable-shared
 make -j2
-make install
+sudo make install

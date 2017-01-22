@@ -1,7 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "call.h"
+void foo(int x, int y) {
+    printf("%d\n", x + y);
+}
+
+void bar(int x, int y) {
+    printf("%d\n", x - y);   
+}
 
 int main(int argc, char *argv[])
 {
